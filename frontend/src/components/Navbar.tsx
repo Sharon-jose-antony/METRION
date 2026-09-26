@@ -23,9 +23,16 @@ export const Navbar: React.FC = () => {
   const [showDemoMenu, setShowDemoMenu] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [qrTokenInput, setQrTokenInput] = useState('');
+  const [backendStatus, setBackendStatus] = useState<'ONLINE' | 'CONNECTING' | 'OFFLINE'>('CONNECTING');
 
   const demoMenuRef = useRef<HTMLDivElement>(null);
   const notifMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetch(`${api.getBackendBaseUrl()}/`)
+      .then(res => res.ok ? setBackendStatus('ONLINE') : setBackendStatus('OFFLINE'))
+      .catch(() => setBackendStatus('OFFLINE'));
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -62,7 +69,7 @@ export const Navbar: React.FC = () => {
         else if (email.includes('gatc')) navigate('/gatc/dashboard');
       }, 50);
     } catch (err: any) {
-      alert(`Login failed: ${err.message}`);
+      alert(`Login failed: ${err.message || 'Failed to fetch'}\n\nNote: If you have an older version of the page cached, please press Ctrl + Shift + R (or Cmd + Shift + R) to do a hard refresh so the browser connects to the live Render backend.`);
     }
   };
 
@@ -121,6 +128,37 @@ export const Navbar: React.FC = () => {
             {/* Right: Controls & Profile */}
             <div className="flex items-center gap-2.5">
               
+              {/* Live Backend Connection Indicator */}
+              <div className="hidden sm:flex items-center">
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-mono rounded border ${
+                    backendStatus === 'ONLINE'
+                      ? 'bg-emerald-950/70 text-emerald-300 border-emerald-800'
+                      : backendStatus === 'CONNECTING'
+                      ? 'bg-amber-950/70 text-amber-300 border-amber-800'
+                      : 'bg-rose-950/70 text-rose-300 border-rose-800'
+                  }`}
+                  title={`Backend: ${api.getBackendBaseUrl()}`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      backendStatus === 'ONLINE'
+                        ? 'bg-emerald-400'
+                        : backendStatus === 'CONNECTING'
+                        ? 'bg-amber-400 animate-pulse'
+                        : 'bg-rose-400'
+                    }`}
+                  />
+                  <span>
+                    {backendStatus === 'ONLINE'
+                      ? 'Render API'
+                      : backendStatus === 'CONNECTING'
+                      ? 'Connecting...'
+                      : 'API Sleeping'}
+                  </span>
+                </span>
+              </div>
+
               {/* Subtle Demo Persona Switcher */}
               <div className="relative" ref={demoMenuRef}>
                 <button
