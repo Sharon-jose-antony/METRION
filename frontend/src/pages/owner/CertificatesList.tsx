@@ -225,7 +225,7 @@ export const CertificatesList: React.FC = () => {
                     <div className="bg-white p-2.5 rounded border border-slate-300 shadow-2xs inline-block">
                       <img
                         src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(
-                          window.location.origin + '/verify/' + selectedCert.qr_token
+                          `${window.location.origin}${window.location.pathname}#/verify/${selectedCert.qr_token}`
                         )}`}
                         alt="Certificate QR Token"
                         className="w-24 h-24"
@@ -251,7 +251,7 @@ export const CertificatesList: React.FC = () => {
                   </Link>
 
                   <a
-                    href={`/uploads/cert_${selectedCert.certificate_number}.pdf`}
+                    href={api.certificates.getPdfUrl(selectedCert.id)}
                     target="_blank"
                     rel="noreferrer"
                     className="flex-1 py-1.5 px-3 bg-[#0B2545] hover:bg-slate-800 text-white rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-2xs"

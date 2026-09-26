@@ -274,7 +274,7 @@ export const InstrumentDetail: React.FC = () => {
                         <QrCode className="w-3 h-3 text-blue-600" /> Verify QR
                       </Link>
                       <a
-                        href={`/uploads/cert_${activeCert.certificate_number}.pdf`}
+                        href={api.certificates.getPdfUrl(activeCert.id)}
                         target="_blank"
                         rel="noreferrer"
                         className="px-3 py-1.5 bg-[#0f172a] hover:bg-slate-800 text-white font-medium rounded text-xs flex items-center gap-1 transition-colors shadow-2xs"
@@ -365,7 +365,7 @@ export const InstrumentDetail: React.FC = () => {
                               Verify QR
                             </Link>
                             <a
-                              href={`/uploads/cert_${cert.certificate_number}.pdf`}
+                              href={api.certificates.getPdfUrl(cert.id)}
                               target="_blank"
                               rel="noreferrer"
                               className="px-2.5 py-1 bg-[#0f172a] hover:bg-slate-800 text-white font-medium rounded text-[11px] transition-colors inline-block"

@@ -195,7 +195,7 @@ export const VerifyCertificate: React.FC = () => {
                 <Printer className="w-3.5 h-3.5" /> Print
               </button>
               <a
-                href={`/uploads/cert_${data.certificate_number}.pdf`}
+                href={api.getUploadUrl(`uploads/cert_${data.certificate_number}.pdf`)}
                 target="_blank"
                 rel="noreferrer"
                 className="px-3 py-1.5 bg-[#0f172a] hover:bg-slate-800 text-white font-medium rounded text-xs flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs"

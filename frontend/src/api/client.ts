@@ -15,7 +15,47 @@ import {
   UserRole
 } from '../types';
 
-const API_BASE = '/api';
+export const RENDER_BACKEND_URL = 'https://metrion.onrender.com';
+
+export const getApiBase = (): string => {
+  // 1. Runtime override from localStorage (e.g. if user wants to switch backend)
+  const saved = typeof window !== 'undefined' ? localStorage.getItem('metrion_api_url') : null;
+  if (saved) {
+    return `${saved.replace(/\/+$/, '')}/api`;
+  }
+  // 2. Vite environment variable
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl) {
+    return `${envUrl.replace(/\/+$/, '')}/api`;
+  }
+  // 3. In production or hosted on github.io or anywhere non-localhost
+  if (
+    import.meta.env.PROD ||
+    (typeof window !== 'undefined' &&
+      (window.location.hostname.includes('github.io') ||
+        !['localhost', '127.0.0.1'].includes(window.location.hostname)))
+  ) {
+    return `${RENDER_BACKEND_URL}/api`;
+  }
+  // 4. Local development proxy fallback
+  return '/api';
+};
+
+export const getBackendBaseUrl = (): string => {
+  const base = getApiBase();
+  return base.endsWith('/api') ? base.slice(0, -4) : base;
+};
+
+export const getCertificatePdfUrl = (certId: number | string): string => {
+  return `${getApiBase()}/certificates/${certId}/pdf`;
+};
+
+export const getUploadUrl = (relativePath: string): string => {
+  const clean = relativePath.replace(/^\/+/, '');
+  return `${getBackendBaseUrl()}/${clean}`;
+};
+
+export const API_BASE = getApiBase();
 
 export class ApiError extends Error {
   status: number;
@@ -39,7 +79,8 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
+  const base = getApiBase();
+  const response = await fetch(`${base}${endpoint}`, {
     ...options,
     headers,
   });
@@ -49,8 +90,14 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     localStorage.removeItem('metrion_user');
     localStorage.removeItem('legalmet_token');
     localStorage.removeItem('legalmet_user');
-    if (!window.location.pathname.startsWith('/verify') && window.location.pathname !== '/login') {
-      window.location.href = '/login';
+    const isVerify = window.location.hash.includes('/verify') || window.location.pathname.includes('/verify');
+    const isLogin = window.location.hash.includes('/login') || window.location.pathname.endsWith('/login');
+    if (!isVerify && !isLogin) {
+      if (window.location.hash) {
+        window.location.hash = '#/login';
+      } else {
+        window.location.href = '#/login';
+      }
     }
   }
 
@@ -196,6 +243,7 @@ export const api = {
     list: (statusFilter?: string) =>
       request<Certificate[]>(statusFilter ? `/certificates?status_filter=${statusFilter}` : '/certificates'),
     get: (id: number) => request<Certificate>(`/certificates/${id}`),
+    getPdfUrl: (id: number | string) => getCertificatePdfUrl(id),
     revoke: (id: number, revocation_reason: string) =>
       request<Certificate>(`/certificates/${id}/revoke`, {
         method: 'POST',
@@ -234,4 +282,9 @@ export const api = {
     list: (action?: string) =>
       request<AuditEventItem[]>(action ? `/audit-events?action=${action}` : '/audit-events'),
   },
+
+  // Helpers
+  getApiBase,
+  getBackendBaseUrl,
+  getUploadUrl,
 };

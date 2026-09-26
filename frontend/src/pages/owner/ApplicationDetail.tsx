@@ -122,7 +122,7 @@ export const ApplicationDetail: React.FC = () => {
                 <QrCode className="w-3.5 h-3.5 text-blue-600" /> Verify Form VI
               </Link>
               <a
-                href={`/uploads/cert_${app.certificate.certificate_number}.pdf`}
+                href={api.certificates.getPdfUrl(app.certificate.id)}
                 target="_blank"
                 rel="noreferrer"
                 className="px-3.5 py-1.5 bg-[#0B2545] hover:bg-slate-800 text-white text-xs font-semibold rounded flex items-center gap-1.5 transition-colors shadow-2xs"

@@ -102,7 +102,7 @@ export const AdminCertificates: React.FC = () => {
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <a
-                          href={`/api/certificates/${cert.id}/pdf`}
+                          href={api.certificates.getPdfUrl(cert.id)}
                           target="_blank"
                           rel="noreferrer"
                           className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded text-[11px] flex items-center gap-1 transition-colors"

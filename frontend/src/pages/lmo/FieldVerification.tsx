@@ -631,7 +631,7 @@ export const FieldVerification: React.FC = () => {
             <div className="flex gap-2 pt-2">
               {verificationResult.certificate_id && (
                 <a
-                  href={`/api/certificates/${verificationResult.certificate_id}/pdf`}
+                  href={api.certificates.getPdfUrl(verificationResult.certificate_id)}
                   target="_blank"
                   rel="noreferrer"
                   className="flex-1 py-2 bg-[#0f172a] hover:bg-slate-800 text-white font-semibold text-xs rounded flex items-center justify-center gap-1.5 transition-colors"
