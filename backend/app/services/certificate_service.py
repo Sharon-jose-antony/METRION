@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, Tuple
 import qrcode
 from io import BytesIO
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
@@ -322,7 +323,14 @@ def verify_public_certificate(
     Returns (status, safe_dict).
     Never exposes owner private details.
     """
-    cert = db.query(Certificate).filter(Certificate.qr_token == qr_token).first()
+    # Lookup by either unique cryptographic QR token or Certificate ID (e.g. LM-CERT-2026-000001)
+    clean_token = qr_token.strip()
+    cert = db.query(Certificate).filter(
+        or_(
+            Certificate.qr_token == clean_token,
+            Certificate.certificate_number == clean_token
+        )
+    ).first()
     if not cert:
         return "INVALID", None
 

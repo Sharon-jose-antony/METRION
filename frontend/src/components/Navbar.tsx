@@ -331,30 +331,59 @@ export const Navbar: React.FC = () => {
             </div>
 
             <p className="text-xs text-slate-600">
-              Enter the 32-character certificate QR token to query live verification status:
+              Enter the Certificate ID or 32-character QR token to query live verification status:
             </p>
 
             <form onSubmit={handleQrLookup} className="space-y-3">
               <input
                 type="text"
                 required
-                placeholder="e.g. 7ad974d6f45a4f479a95786720f491c6"
+                placeholder="e.g. LM-CERT-2026-000001 or QR token"
                 value={qrTokenInput}
                 onChange={e => setQrTokenInput(e.target.value)}
                 className="w-full text-xs font-mono px-3 py-2 border border-slate-300 rounded focus:border-blue-600 focus:outline-hidden"
               />
 
-              <div className="flex justify-end gap-2 pt-1">
+              <div className="space-y-1 pt-1">
+                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
+                  Quick Test Cases:
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => { setQrTokenInput('a1b2c3d4e5f67890abcdef1234567890'); }}
+                    className="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded text-[10px] font-semibold"
+                  >
+                    🟢 Valid Scale
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setQrTokenInput('b2c3d4e5f6a17890abcdef1234567891'); }}
+                    className="px-2 py-0.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded text-[10px] font-semibold"
+                  >
+                    🟡 Expiring Soon (12d)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setQrTokenInput('c3d4e5f6a1b27890abcdef1234567892'); }}
+                    className="px-2 py-0.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 rounded text-[10px] font-semibold"
+                  >
+                    🔴 Expired Scale
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowQrModal(false)}
-                  className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded border border-slate-300"
+                  className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded border border-slate-300 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                  className="px-4 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors cursor-pointer shadow-xs"
                 >
                   Authenticate Record
                 </button>
