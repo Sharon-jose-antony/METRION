@@ -19,19 +19,52 @@ import {
 export const LmoDashboard: React.FC = () => {
   const [data, setData] = useState<VerifierDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  const loadData = () => {
+    setLoading(true);
+    setError(null);
     api.dashboard.getVerifier()
       .then(setData)
-      .catch(console.error)
+      .catch((err) => {
+        console.warn('Verifier dashboard load warning:', err);
+        setError('Could not fetch latest roster from server.');
+        // Fallback to empty shell so user is not blocked
+        setData({
+          metrics: { today_cases: 0, upcoming_cases: 0, completed_total: 0 },
+          today_assignments: [],
+          upcoming_assignments: [],
+          completed_recent: []
+        });
+      })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadData();
   }, []);
 
-  if (loading || !data) {
+  if (loading && !data) {
     return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <div className="w-7 h-7 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-[50vh] flex flex-col items-center justify-center gap-3">
+        <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <span className="text-xs text-slate-500 font-medium">Connecting to verification station...</span>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="p-6 bg-red-50 border border-red-200 rounded-lg text-center space-y-3 my-8">
+        <AlertCircle className="w-8 h-8 text-red-500 mx-auto" />
+        <p className="text-sm font-semibold text-red-700">Unable to connect to verification services</p>
+        <button
+          onClick={loadData}
+          className="px-4 py-2 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700 transition-colors"
+        >
+          Retry Connection
+        </button>
       </div>
     );
   }

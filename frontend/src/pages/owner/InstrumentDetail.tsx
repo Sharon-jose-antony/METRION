@@ -60,10 +60,21 @@ export const InstrumentDetail: React.FC = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading || !instrument) {
+  if (loading) {
     return (
       <div className="min-h-[40vh] flex items-center justify-center">
         <div className="w-7 h-7 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!instrument) {
+    return (
+      <div className="p-8 text-center space-y-3 bg-white rounded border border-slate-200 my-8">
+        <p className="text-sm font-semibold text-slate-700">Instrument not found or could not be loaded.</p>
+        <Link to="/owner/instruments" className="inline-block px-4 py-2 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700 transition-colors">
+          Back to Instruments
+        </Link>
       </div>
     );
   }

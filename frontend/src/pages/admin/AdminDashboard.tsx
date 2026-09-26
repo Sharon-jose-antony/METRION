@@ -16,26 +16,56 @@ import {
   SlidersHorizontal,
   ChevronRight,
   CheckCircle2,
-  CheckSquare
+  CheckSquare,
+  RefreshCw
 } from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
   const [data, setData] = useState<AdminDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [stageFilter, setStageFilter] = useState<string>('ALL');
   const navigate = useNavigate();
 
-  useEffect(() => {
+  const loadData = () => {
+    setLoading(true);
+    setError(null);
     api.dashboard.getAdmin()
       .then(setData)
-      .catch(console.error)
+      .catch((err: any) => {
+        console.error('Failed to load admin dashboard:', err);
+        setError(err.message || 'Unable to connect to backend');
+      })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadData();
   }, []);
 
-  if (loading || !data) {
+  if (loading && !data) {
     return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <div className="w-7 h-7 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-[50vh] flex flex-col items-center justify-center gap-3">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <p className="text-xs text-slate-500 font-medium">Loading administrative dashboard...</p>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="min-h-[40vh] flex flex-col items-center justify-center gap-3 p-6 text-center">
+        <div className="h-12 w-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center">
+          <AlertCircle className="w-6 h-6" />
+        </div>
+        <h3 className="text-sm font-bold text-slate-800">Connection Delay</h3>
+        <p className="text-xs text-slate-500 max-w-sm">{error || 'Server response timed out. Render may be waking up.'}</p>
+        <button
+          onClick={loadData}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded shadow-xs cursor-pointer flex items-center gap-1.5 transition-colors"
+        >
+          <RefreshCw className="w-3.5 h-3.5" /> Retry Connection
+        </button>
       </div>
     );
   }

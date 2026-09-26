@@ -22,21 +22,59 @@ export const OwnerDashboard: React.FC = () => {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [instruments, setInstruments] = useState<Instrument[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const loadDashboard = () => {
     setLoading(true);
+    setError(null);
     Promise.all([
-      api.dashboard.getOwner(),
+      api.dashboard.getOwner().catch((e) => {
+        console.warn('Dashboard getOwner API fallback:', e);
+        return null;
+      }),
       api.certificates.list().catch(() => []),
       api.instruments.list().catch(() => [])
     ])
       .then(([dashData, certList, instList]) => {
-        setData(dashData);
-        setCertificates(certList || []);
-        setInstruments(instList || []);
+        const certs = certList || [];
+        const insts = instList || [];
+        if (dashData) {
+          setData(dashData);
+        } else {
+          // Graceful fallback to avoid infinite spinner if summary endpoint lagged
+          setData({
+            metrics: {
+              instruments: insts.length,
+              pending_applications: 0,
+              valid_certificates: certs.filter(c => c.status === 'VALID').length,
+              expiring_soon: 0,
+            },
+            instruments_count: insts.length,
+            pending_applications_count: 0,
+            valid_certificates_count: certs.filter(c => c.status === 'VALID').length,
+            expiring_soon_count: 0,
+            recent_instruments: insts.slice(0, 5).map(i => ({
+              id: i.id,
+              instrument_id: i.instrument_id,
+              category: i.category_name || 'Standard',
+              name: `${i.manufacturer} ${i.model}`,
+              serial_number: i.serial_number,
+              status: i.current_status,
+              valid_until: undefined,
+              certificate_id: i.active_certificate_id,
+            })),
+            active_applications: [],
+            expiring_certificates: [],
+          });
+        }
+        setCertificates(certs);
+        setInstruments(insts);
       })
-      .catch(console.error)
+      .catch((err: any) => {
+        console.error('Dashboard load error:', err);
+        setError(err.message || 'Unable to connect to backend');
+      })
       .finally(() => setLoading(false));
   };
 
@@ -44,10 +82,29 @@ export const OwnerDashboard: React.FC = () => {
     loadDashboard();
   }, []);
 
-  if (loading || !data) {
+  if (loading && !data) {
     return (
-      <div className="min-h-[40vh] flex items-center justify-center">
-        <div className="w-7 h-7 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-[40vh] flex flex-col items-center justify-center gap-3">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <p className="text-xs text-slate-500 font-medium">Loading instrument dashboard...</p>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="min-h-[40vh] flex flex-col items-center justify-center gap-3 p-6 text-center">
+        <div className="h-12 w-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center">
+          <AlertCircle className="w-6 h-6" />
+        </div>
+        <h3 className="text-sm font-bold text-slate-800">Connection Timeout</h3>
+        <p className="text-xs text-slate-500 max-w-sm">{error || 'Server connection took too long. Render may be waking up.'}</p>
+        <button
+          onClick={loadDashboard}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded shadow-xs cursor-pointer flex items-center gap-1.5 transition-colors"
+        >
+          <RefreshCw className="w-3.5 h-3.5" /> Retry Connection
+        </button>
       </div>
     );
   }

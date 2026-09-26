@@ -18,27 +18,52 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('metrion_user') || localStorage.getItem('legalmet_user');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('metrion_user') || localStorage.getItem('legalmet_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('metrion_token') || localStorage.getItem('legalmet_token'));
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  
+  // If we already have a cached user, do not block the UI with a spinner
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    const savedUser = localStorage.getItem('metrion_user') || localStorage.getItem('legalmet_user');
+    const savedToken = localStorage.getItem('metrion_token') || localStorage.getItem('legalmet_token');
+    return Boolean(savedToken && !savedUser);
+  });
 
   useEffect(() => {
-    async function loadUser() {
-      if (token) {
+    let active = true;
+    async function verifySession() {
+      // Only query me() if we have a token but missing user details
+      if (token && !user) {
+        setIsLoading(true);
         try {
           const freshUser = await api.auth.me();
-          setUser(freshUser);
-          localStorage.setItem('metrion_user', JSON.stringify(freshUser));
+          if (active) {
+            setUser(freshUser);
+            localStorage.setItem('metrion_user', JSON.stringify(freshUser));
+          }
         } catch {
-          // invalid token
-          logout();
+          if (active) {
+            localStorage.removeItem('metrion_token');
+            localStorage.removeItem('metrion_user');
+            setToken(null);
+            setUser(null);
+          }
+        } finally {
+          if (active) setIsLoading(false);
         }
+      } else {
+        if (active) setIsLoading(false);
       }
-      setIsLoading(false);
     }
-    loadUser();
+    verifySession();
+    return () => {
+      active = false;
+    };
   }, [token]);
 
   const login = async (email: string, pass: string): Promise<User> => {
@@ -49,9 +74,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('metrion_user', JSON.stringify(res.user));
       setToken(res.access_token);
       setUser(res.user);
-      return res.user;
-    } finally {
       setIsLoading(false);
+      return res.user;
+    } catch (err) {
+      setIsLoading(false);
+      throw err;
     }
   };
 

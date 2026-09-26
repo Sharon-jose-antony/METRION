@@ -2,8 +2,11 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
+// Automatically uses '/' on Vercel or custom VITE_BASE, and '/METRION/' on GitHub Pages
+const base = process.env.VERCEL ? '/' : (process.env.VITE_BASE || '/METRION/');
+
 export default defineConfig({
-  base: '/METRION/',
+  base,
   plugins: [react()],
   server: {
     host: true,

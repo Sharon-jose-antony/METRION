@@ -33,10 +33,21 @@ export const ApplicationDetail: React.FC = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading || !app) {
+  if (loading) {
     return (
       <div className="min-h-[40vh] flex items-center justify-center">
         <div className="w-8 h-8 border-3 border-[#0B2545] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!app) {
+    return (
+      <div className="p-8 text-center space-y-3 bg-white rounded border border-slate-200 my-8">
+        <p className="text-sm font-semibold text-slate-700">Application not found or could not be loaded.</p>
+        <Link to="/owner/applications" className="inline-block px-4 py-2 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700 transition-colors">
+          Back to Applications
+        </Link>
       </div>
     );
   }
