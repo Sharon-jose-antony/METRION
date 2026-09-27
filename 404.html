@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>METRION - Redirecting...</title>
+    <script>
+      // Redirect direct GitHub Pages paths into HashRouter routes
+      (function() {
+        var l = window.location;
+        var segments = l.pathname.split('/').filter(Boolean);
+        var repoName = segments.length > 0 ? segments[0] : 'METRION';
+        var remainingPath = segments.slice(1).join('/');
+        var targetHash = '#/' + (remainingPath ? remainingPath : '');
+        var newUrl = l.protocol + '//' + l.host + '/' + repoName + '/' + targetHash + l.search + (l.hash && !l.hash.startsWith('#/') ? l.hash : '');
+        l.replace(newUrl);
+      })();
+    </script>
+  </head>
+  <body style="font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #0f172a; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0;">
+    <div style="text-align: center; padding: 30px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); max-width: 400px;">
+      <div style="width: 32px; height: 32px; border: 3px solid #2563eb; border-top-color: transparent; border-radius: 50%; margin: 0 auto 16px; animation: spin 1s linear infinite;"></div>
+      <h3 style="margin: 0 0 8px; font-size: 16px; font-weight: 700;">METRION Verification Portal</h3>
+      <p style="margin: 0; font-size: 13px; color: #64748b;">Redirecting to digital verification certificate...</p>
+    </div>
+    <style>
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+  </body>
+</html>
