@@ -53,6 +53,15 @@ app.include_router(audit.router, prefix=settings.API_V1_STR)
 @app.on_event("startup")
 def startup_populate_demo_data():
     seed_database()
+    try:
+        from app.core.database import SessionLocal
+        from app.services.certificate_service import regenerate_all_certificate_pdfs
+        db = SessionLocal()
+        count = regenerate_all_certificate_pdfs(db)
+        db.close()
+        print(f"[+] Re-generated {count} certificate PDFs with online GitHub Pages QR codes.")
+    except Exception as e:
+        print(f"[!] Warning on startup certificate PDF refresh: {e}")
 
 @app.get("/")
 def root():

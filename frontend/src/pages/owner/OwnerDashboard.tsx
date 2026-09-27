@@ -368,7 +368,7 @@ export const OwnerDashboard: React.FC = () => {
                         Verify QR
                       </Link>
                       <a
-                        href={`/uploads/cert_${cert.certificate_number}.pdf`}
+                        href={api.getUploadUrl(`uploads/cert_${cert.certificate_number}.pdf`)}
                         target="_blank"
                         rel="noreferrer"
                         className="px-2.5 py-1 bg-[#0f172a] hover:bg-slate-800 text-white font-medium rounded text-[11px] transition-colors inline-block"

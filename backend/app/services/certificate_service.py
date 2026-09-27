@@ -43,8 +43,13 @@ def generate_certificate_pdf(
     pdf_filename = f"cert_{certificate.certificate_number}.pdf"
     pdf_path = os.path.join(settings.STORAGE_DIR, pdf_filename)
     
-    # 1. Generate QR Code image in memory
-    qr_data = f"{settings.PUBLIC_BASE_URL}/verify/{certificate.qr_token}"
+    # 1. Generate QR Code image in memory pointing to live online authentication URL
+    base_url = (settings.PUBLIC_BASE_URL or "https://sharon-jose-antony.github.io/METRION").rstrip('/')
+    if '#' in base_url:
+        qr_data = f"{base_url}/verify/{certificate.qr_token}"
+    else:
+        qr_data = f"{base_url}/#/verify/{certificate.qr_token}"
+
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_M,
@@ -204,7 +209,8 @@ def generate_certificate_pdf(
                       f"<b>Verification Date:</b> {certificate.issue_date.strftime('%d-%b-%Y %H:%M UTC')}<br/>"
                       f"<b>Official Seal / Stamp:</b> Digitally Authenticated & Stamped<br/>"
                       f"<i>Scan the QR code to verify live certificate validity.</i>", value_style),
-            Paragraph("<font size='7' color='#475569'>Scan with any smartphone or camera to access live government registry record</font>", disclaimer_style)
+            Paragraph(f"<font size='6' color='#0284c7'><b>{qr_data}</b></font><br/>"
+                      f"<font size='6.5' color='#475569'>Scan with any smartphone camera to open live government registry record</font>", disclaimer_style)
         ]
     ]
     verif_table = Table(verif_details_data, colWidths=[380, 140])
@@ -421,3 +427,23 @@ def revoke_certificate(
     )
 
     return cert
+
+def regenerate_all_certificate_pdfs(db: Session) -> int:
+    """
+    Regenerates all certificate PDFs on disk so every embedded QR code
+    points to the current live online URL (e.g. GitHub Pages).
+    """
+    certs = db.query(Certificate).all()
+    count = 0
+    for c in certs:
+        try:
+            inst = c.instrument
+            verifier = c.issued_by
+            owner = c.issued_to
+            if inst and verifier and owner:
+                c.pdf_path = generate_certificate_pdf(c, inst, verifier, owner)
+                count += 1
+        except Exception as e:
+            print(f"Error regenerating PDF for cert {c.certificate_number}: {e}")
+    db.commit()
+    return count

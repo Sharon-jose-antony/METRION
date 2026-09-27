@@ -101,20 +101,29 @@ def download_certificate_pdf(
     if not c:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Certificate not found")
 
-    if not c.pdf_path or not os.path.exists(c.pdf_path):
-        # Re-generate PDF if missing on disk
-        from app.services.certificate_service import generate_certificate_pdf
-        inst = c.instrument
-        verifier = c.issued_by
-        owner = c.issued_to
-        c.pdf_path = generate_certificate_pdf(c, inst, verifier, owner)
-        db.commit()
+    from app.services.certificate_service import generate_certificate_pdf
+    inst = c.instrument
+    verifier = c.issued_by
+    owner = c.issued_to
+    # Always generate freshly to guarantee latest online QR code
+    c.pdf_path = generate_certificate_pdf(c, inst, verifier, owner)
+    db.commit()
 
     return FileResponse(
         path=c.pdf_path,
         filename=f"Metrion_Certificate_{c.certificate_number}.pdf",
         media_type="application/pdf"
     )
+
+@router.post("/refresh-all-pdfs")
+def refresh_all_certificate_pdfs_endpoint(db: Session = Depends(get_db)):
+    """
+    Public/Admin utility endpoint to regenerate all certificate PDFs with online QR code.
+    """
+    from app.services.certificate_service import regenerate_all_certificate_pdfs
+    count = regenerate_all_certificate_pdfs(db)
+    return {"status": "success", "regenerated_count": count, "message": f"Successfully regenerated {count} certificate PDFs with online GitHub Pages QR codes."}
+
 
 @router.post("/{id}/revoke", response_model=CertificateResponse)
 def revoke_certificate_endpoint(

@@ -24,8 +24,8 @@ class Settings(BaseSettings):
         os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "uploads")
     )
     
-    # URLs
-    PUBLIC_BASE_URL: str = os.getenv("PUBLIC_BASE_URL", "http://localhost:5173")
+    # URLs (Defaults to live GitHub Pages production app)
+    PUBLIC_BASE_URL: str = os.getenv("PUBLIC_BASE_URL", "https://sharon-jose-antony.github.io/METRION")
     
     # CORS
     CORS_ORIGINS: List[str] = [
